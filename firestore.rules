@@ -1,0 +1,70 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (matches auth.uid)
+    // Fields:
+    //   - l1: string (required) - user's native language
+    //   - rioplatense: boolean (required) - variant preference
+    //   - onboardingCompleted: boolean (required) - onboarding status
+    //   - assignedPhase: number (required) - current learning phase
+    //   - stats: map (optional) - learning statistics
+    //   - srs: map (optional) - spaced repetition data
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    
+    function isValidUserProfile(data) {
+      let allowedFields = ['l1', 'rioplatense', 'onboardingCompleted', 'assignedPhase', 'stats', 'srs'];
+      let requiredFields = ['l1', 'rioplatense', 'onboardingCompleted', 'assignedPhase'];
+      
+      return hasRequiredFields(requiredFields) &&
+             hasOnlyAllowedFields(allowedFields) &&
+             (data.l1 is string || data.l1 == null) &&
+             data.rioplatense is bool &&
+             data.onboardingCompleted is bool &&
+             data.assignedPhase is number &&
+             (!('stats' in data) || data.stats is map) &&
+             (!('srs' in data) || data.srs is map);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow update: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow delete: if isOwner(userId);
+    }
+  }
+}

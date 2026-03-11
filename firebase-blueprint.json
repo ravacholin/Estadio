@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and progress data",
+      "type": "object",
+      "properties": {
+        "l1": {
+          "type": "string",
+          "description": "User's native language"
+        },
+        "rioplatense": {
+          "type": "boolean",
+          "description": "Whether the user opted in for Rioplatense variant"
+        },
+        "onboardingCompleted": {
+          "type": "boolean",
+          "description": "Whether the user completed the onboarding process"
+        },
+        "assignedPhase": {
+          "type": "number",
+          "description": "The current learning phase assigned to the user"
+        },
+        "stats": {
+          "type": "object",
+          "description": "User's learning statistics",
+          "properties": {
+            "totalSessions": {
+              "type": "number"
+            },
+            "totalExercises": {
+              "type": "number"
+            },
+            "correctExercises": {
+              "type": "number"
+            }
+          }
+        },
+        "srs": {
+          "type": "object",
+          "description": "Spaced repetition system data mapping exercise IDs to SRS items"
+        }
+      },
+      "required": ["l1", "rioplatense", "onboardingCompleted", "assignedPhase"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Stores user profiles and their learning progress."
+    }
+  }
+}
