@@ -16,6 +16,7 @@ export default function Session({ exercises, onFinish, onAnswer }: SessionProps)
   const [classificationAnswers, setClassificationAnswers] = useState<Record<string, 'propiedad' | 'estado'>>({});
   const [fillInBlanksAnswers, setFillInBlanksAnswers] = useState<Record<string, string>>({});
   const [isAnswered, setIsAnswered] = useState(false);
+  const [lastAnswerCorrect, setLastAnswerCorrect] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
 
@@ -49,11 +50,12 @@ export default function Session({ exercises, onFinish, onAnswer }: SessionProps)
     return null;
   }, [currentExercise]);
 
-  const handleAnswer = (answerId: string, isCorrect: boolean) => {
+  const handleAnswer = (answerId: string, correct: boolean) => {
     if (isAnswered) return;
     setSelectedAnswer(answerId);
     setIsAnswered(true);
-    if (isCorrect) {
+    setLastAnswerCorrect(correct);
+    if (correct) {
       setScore(s => s + 1);
     }
   };
@@ -67,9 +69,9 @@ export default function Session({ exercises, onFinish, onAnswer }: SessionProps)
       if (currentExercise.type === 'classification') {
         const ex = currentExercise as ClassificationExercise;
         if (Object.keys(next).length === ex.sentences.length) {
-          setIsAnswered(true);
-          // Calculate if all are correct
           const allCorrect = ex.sentences.every(s => next[s.id] === s.category);
+          setIsAnswered(true);
+          setLastAnswerCorrect(allCorrect);
           if (allCorrect) {
             setScore(s => s + 1);
           }
@@ -87,8 +89,9 @@ export default function Session({ exercises, onFinish, onAnswer }: SessionProps)
       if (currentExercise.type === 'fill_in_blanks') {
         const ex = currentExercise as FillInBlanksExercise;
         if (Object.keys(next).length === ex.blanks.length) {
-          setIsAnswered(true);
           const allCorrect = ex.blanks.every(b => next[b.id] === b.correctOption);
+          setIsAnswered(true);
+          setLastAnswerCorrect(allCorrect);
           if (allCorrect) {
             setScore(s => s + 1);
           }
@@ -158,6 +161,7 @@ export default function Session({ exercises, onFinish, onAnswer }: SessionProps)
       setClassificationAnswers({});
       setFillInBlanksAnswers({});
       setIsAnswered(false);
+      setLastAnswerCorrect(false);
       setShowExplanation(false);
     }
   };
@@ -179,15 +183,13 @@ export default function Session({ exercises, onFinish, onAnswer }: SessionProps)
 
   // Auto-advance on correct answer
   useEffect(() => {
-    if (isAnswered && !showExplanation) {
-      if (isCorrect(selectedAnswer || '')) {
-        const timer = setTimeout(() => {
-          handleNext();
-        }, 1500);
-        return () => clearTimeout(timer);
-      }
+    if (isAnswered && lastAnswerCorrect && !showExplanation) {
+      const timer = setTimeout(() => {
+        handleNext();
+      }, 1500);
+      return () => clearTimeout(timer);
     }
-  }, [isAnswered, selectedAnswer, classificationAnswers, fillInBlanksAnswers, showExplanation, currentExercise]);
+  }, [isAnswered, lastAnswerCorrect, showExplanation]);
 
   const renderDiscrimination = (ex: DiscriminationExercise) => {
     const options = shuffledOptions?.discrimination || ex.options;
