@@ -2,7 +2,7 @@ import { UserProfile } from '../types';
 import { motion } from 'motion/react';
 import { Play, BookOpen, BarChart3, Settings, LogIn, LogOut } from 'lucide-react';
 import { auth } from '../firebase';
-import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect, signOut } from 'firebase/auth';
 import { useState, useEffect } from 'react';
 
 interface DashboardProps {
@@ -24,7 +24,7 @@ export default function Dashboard({ profile, onStartSession, onReset }: Dashboar
   const handleSignIn = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       console.error('Error signing in:', error);
     }

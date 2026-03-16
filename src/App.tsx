@@ -7,7 +7,7 @@ import Session from './components/Session';
 import { generateSession, processAnswer, clearRemedialHistory } from './utils/srs';
 import { loadProfile, saveProfile, clearProfile } from './services/profileService';
 import { auth } from './firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 
 export default function App() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -18,16 +18,21 @@ export default function App() {
 
   // Handle auth state changes
   useEffect(() => {
+    // Check for redirect results primarily to catch and log errors
+    getRedirectResult(auth).catch((error) => {
+      console.error('Redirect auth error:', error);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       const loadedProfile = await loadProfile();
       setProfile(loadedProfile);
-      
+
       // If user logs in and we have a local profile but no cloud profile, 
       // loadProfile will return the local one. We should save it to cloud.
       if (user && loadedProfile) {
         await saveProfile(loadedProfile);
       }
-      
+
       setIsAuthReady(true);
     });
 
@@ -65,12 +70,12 @@ export default function App() {
         correctExercises: (profile.stats?.correctExercises || 0) + score,
       };
       let newProfile: UserProfile = { ...profile, stats: newStats };
-      
+
       // Clear remedial history if they just completed a session that had remedial exercises
       if (remedialPhase !== null) {
         newProfile = clearRemedialHistory(newProfile, remedialPhase);
       }
-      
+
       setProfile(newProfile);
       await saveProfile(newProfile);
       setRemedialPhase(null);
@@ -97,9 +102,9 @@ export default function App() {
   return (
     <>
       <div className="fixed inset-0 z-0 bg-zinc-950">
-        <img 
-          src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920" 
-          alt="Dark abstract background" 
+        <img
+          src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920"
+          alt="Dark abstract background"
           className="w-full h-full object-cover opacity-20 mix-blend-luminosity grayscale"
           referrerPolicy="no-referrer"
         />
@@ -113,9 +118,9 @@ export default function App() {
         ) : isSessionActive ? (
           <Session exercises={sessionExercises} onFinish={finishSession} onAnswer={handleAnswer} />
         ) : (
-          <Dashboard 
-            profile={profile} 
-            onStartSession={startSession} 
+          <Dashboard
+            profile={profile}
+            onStartSession={startSession}
             onReset={resetProfile}
           />
         )}
