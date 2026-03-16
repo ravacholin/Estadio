@@ -19,8 +19,9 @@ export default function App() {
   // Handle auth state changes
   useEffect(() => {
     // Check for redirect results primarily to catch and log errors
-    getRedirectResult(auth).catch((error) => {
+    getRedirectResult(auth).catch((error: any) => {
       console.error('Redirect auth error:', error);
+      alert(`Error de autenticación: ${error?.message || error}`);
     });
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {

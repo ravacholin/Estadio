@@ -25,8 +25,9 @@ export default function Dashboard({ profile, onStartSession, onReset }: Dashboar
     try {
       const provider = new GoogleAuthProvider();
       await signInWithRedirect(auth, provider);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error signing in:', error);
+      alert(`Error de Google Auth: ${error?.message || error}`);
     }
   };
 
@@ -38,8 +39,8 @@ export default function Dashboard({ profile, onStartSession, onReset }: Dashboar
     }
   };
 
-  const accuracy = profile.stats && profile.stats.totalExercises > 0 
-    ? Math.round((profile.stats.correctExercises / profile.stats.totalExercises) * 100) 
+  const accuracy = profile.stats && profile.stats.totalExercises > 0
+    ? Math.round((profile.stats.correctExercises / profile.stats.totalExercises) * 100)
     : null;
 
   const getL1Name = (l1: string | null) => {
@@ -82,7 +83,7 @@ export default function Dashboard({ profile, onStartSession, onReset }: Dashboar
 
       <main className="max-w-4xl mx-auto p-6 py-12 space-y-8 relative z-10">
         {!user && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-emerald-950/30 border border-emerald-900/50 p-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-4 brutal-border"
@@ -90,7 +91,7 @@ export default function Dashboard({ profile, onStartSession, onReset }: Dashboar
             <div className="text-emerald-200/80 text-sm font-mono">
               <strong className="text-emerald-400">¡Atención!</strong> Inicia sesión para guardar tu historial en la nube.
             </div>
-            <button 
+            <button
               onClick={handleSignIn}
               className="whitespace-nowrap bg-emerald-500 text-zinc-950 px-4 py-2 text-xs font-mono font-bold uppercase tracking-widest hover:bg-emerald-400 transition-colors brutal-shadow"
             >
@@ -99,37 +100,37 @@ export default function Dashboard({ profile, onStartSession, onReset }: Dashboar
           </motion.div>
         )}
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="relative bg-zinc-900/40 backdrop-blur-md p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 brutal-border overflow-hidden"
         >
           <div className="absolute inset-0 z-0 opacity-20 pointer-events-none mix-blend-luminosity">
-            <img 
-              src="https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?q=80&w=1920" 
-              alt="Abstract dark architecture" 
+            <img
+              src="https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?q=80&w=1920"
+              alt="Abstract dark architecture"
               className="w-full h-full object-cover grayscale"
               referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent"></div>
           </div>
-          
+
           <div className="space-y-6 flex-1 relative z-10">
             <div className="inline-block px-3 py-1 bg-zinc-800/80 border border-zinc-700 text-zinc-300 text-xs font-mono uppercase tracking-widest backdrop-blur-sm">
               Fase {profile.assignedPhase || 1}: {
                 profile.assignedPhase === 1 ? 'Fundamentos' :
-                profile.assignedPhase === 2 ? 'Adjetivos Claros' :
-                profile.assignedPhase === 3 ? 'Adjetivos Ambivalentes' : 'Avanzado'
+                  profile.assignedPhase === 2 ? 'Adjetivos Claros' :
+                    profile.assignedPhase === 3 ? 'Adjetivos Ambivalentes' : 'Avanzado'
               }
             </div>
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-zinc-100 uppercase leading-[0.9]">Entrena tu <br/> intuición.</h2>
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-zinc-100 uppercase leading-[0.9]">Entrena tu <br /> intuición.</h2>
             <p className="text-zinc-400 leading-relaxed max-w-lg font-light text-lg">
-              Construye la diferencia entre propiedades del individuo y estados anclados a una situación. 
+              Construye la diferencia entre propiedades del individuo y estados anclados a una situación.
               Sesiones cortas diarias son mejores que horas de estudio.
             </p>
           </div>
           <div className="relative z-10 w-full md:w-auto">
-            <button 
+            <button
               onClick={onStartSession}
               className="w-full md:w-auto bg-zinc-100 text-zinc-950 px-10 py-6 font-bold uppercase tracking-widest hover:bg-white transition-colors flex items-center justify-center gap-3 text-lg brutal-shadow"
             >
@@ -140,7 +141,7 @@ export default function Dashboard({ profile, onStartSession, onReset }: Dashboar
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -163,14 +164,14 @@ export default function Dashboard({ profile, onStartSession, onReset }: Dashboar
                 </div>
               </div>
               <p className="text-xs font-mono text-zinc-500 mt-4 leading-relaxed">
-                {profile.stats?.totalSessions 
+                {profile.stats?.totalSessions
                   ? `Has completado ${profile.stats.totalSessions} sesión${profile.stats.totalSessions === 1 ? '' : 'es'}.`
                   : 'Completa tu primera sesión para ver estadísticas.'}
               </p>
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}

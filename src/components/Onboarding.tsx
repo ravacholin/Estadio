@@ -2,7 +2,9 @@ import { useState, useMemo } from 'react';
 import { UserProfile, L1 } from '../types';
 import { diagnosticItems } from '../data/diagnostic';
 import { motion, AnimatePresence } from 'motion/react';
-import { Globe, Languages, MapPin, Brain, ArrowRight, CheckCircle2, XCircle } from 'lucide-react';
+import { Globe, Languages, MapPin, Brain, ArrowRight, CheckCircle2, XCircle, LogIn } from 'lucide-react';
+import { auth } from '../firebase';
+import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 
 interface OnboardingProps {
   onComplete: (profile: UserProfile) => void;
@@ -13,13 +15,23 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const [profile, setProfile] = useState<Partial<UserProfile>>({
     rioplatense: false,
   });
-  
+
   // Diagnostic state
   const [diagIndex, setDiagIndex] = useState(0);
   const [diagAnswers, setDiagAnswers] = useState<Record<string, boolean>>({});
   const [diagSelected, setDiagSelected] = useState<string | null>(null);
   const [diagAnswered, setDiagAnswered] = useState(false);
   const [assignedPhase, setAssignedPhase] = useState<number>(1);
+
+  const handleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithRedirect(auth, provider);
+    } catch (error: any) {
+      console.error('Error signing in:', error);
+      alert(`Error de Google Auth: ${error?.message || error}`);
+    }
+  };
 
   const shuffledDiagOptions = useMemo(() => {
     const currentItem = diagnosticItems[diagIndex];
@@ -47,10 +59,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (diagAnswered) return;
     setDiagSelected(option);
     setDiagAnswered(true);
-    
+
     const currentItem = diagnosticItems[diagIndex];
     const isCorrect = option === currentItem.correctOption;
-    
+
     setDiagAnswers(prev => ({ ...prev, [currentItem.id]: isCorrect }));
 
     setTimeout(() => {
@@ -111,7 +123,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     <div className="min-h-screen bg-transparent flex items-center justify-center font-sans text-zinc-200 relative z-10">
       <AnimatePresence mode="wait">
         {step === 'welcome' && (
-          <motion.div 
+          <motion.div
             key="welcome"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -124,23 +136,32 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   <Brain className="w-8 h-8 text-zinc-300" />
                 </div>
                 <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-zinc-100 leading-[0.9] mb-8 uppercase">
-                  Ser y estar <br/> no son <br/> una regla.
+                  Ser y estar <br /> no son <br /> una regla.
                 </h1>
                 <p className="text-zinc-400 text-lg md:text-xl leading-relaxed mb-12 font-light max-w-md">
                   Son dos formas de ver el mundo. En 10 minutos por día vas a empezar a entender la diferencia.
                 </p>
-                <button 
-                  onClick={() => setStep('l1')}
-                  className="w-full md:w-auto px-12 bg-zinc-100 text-zinc-950 py-5 font-bold uppercase tracking-widest hover:bg-white transition-colors brutal-shadow text-sm"
-                >
-                  Empezar
-                </button>
+                <div className="flex flex-col gap-4 w-full md:w-max">
+                  <button
+                    onClick={handleSignIn}
+                    className="w-full flex items-center justify-center gap-3 px-12 bg-emerald-600 text-zinc-50 py-5 font-bold uppercase tracking-widest hover:bg-emerald-500 transition-colors brutal-shadow text-sm"
+                  >
+                    <LogIn className="w-5 h-5" />
+                    Iniciar sesión con Google
+                  </button>
+                  <button
+                    onClick={() => setStep('l1')}
+                    className="w-full px-12 border border-zinc-700 bg-zinc-900/50 text-zinc-300 py-5 font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors brutal-shadow text-sm"
+                  >
+                    Hacer el test (sin cuenta)
+                  </button>
+                </div>
               </div>
             </div>
             <div className="flex-1 relative hidden md:block border-l border-zinc-800">
-              <img 
-                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1920" 
-                alt="Brutalist architecture" 
+              <img
+                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1920"
+                alt="Brutalist architecture"
                 className="absolute inset-0 w-full h-full object-cover grayscale opacity-80"
                 referrerPolicy="no-referrer"
               />
@@ -150,7 +171,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         )}
 
         {step === 'l1' && (
-          <motion.div 
+          <motion.div
             key="l1"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -184,7 +205,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         )}
 
         {step === 'rioplatense' && (
-          <motion.div 
+          <motion.div
             key="rioplatense"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -216,7 +237,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         )}
 
         {step === 'diagnostic' && (
-          <motion.div 
+          <motion.div
             key="diagnostic"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -229,7 +250,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 <span>{diagIndex + 1} de {diagnosticItems.length}</span>
               </div>
               <div className="h-1 bg-zinc-800 overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-emerald-500 transition-all duration-300"
                   style={{ width: `${((diagIndex) / diagnosticItems.length) * 100}%` }}
                 />
@@ -251,7 +272,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               {shuffledDiagOptions.map(opt => {
                 const isSelected = diagSelected === opt;
                 const isCorrect = opt === diagnosticItems[diagIndex].correctOption;
-                
+
                 let btnClass = "p-6 border text-center text-lg font-medium transition-all ";
                 if (!diagAnswered) {
                   btnClass += "border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800/50 text-zinc-300";
@@ -285,7 +306,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         )}
 
         {step === 'register' && (
-          <motion.div 
+          <motion.div
             key="register"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -298,16 +319,16 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             <p className="text-zinc-400 mb-8 font-light">
               Empezás en la <strong className="text-zinc-200">Fase {assignedPhase}</strong>. Ya analizamos tus respuestas y adaptamos el contenido para ti.
             </p>
-            
+
             <div className="space-y-4">
-              <button 
+              <button
                 onClick={finishOnboarding}
                 className="w-full bg-zinc-100 text-zinc-950 py-4 font-bold uppercase tracking-widest hover:bg-white transition-colors flex items-center justify-center gap-2 brutal-shadow text-sm"
               >
                 Guardar mi progreso
                 <ArrowRight className="w-5 h-5" />
               </button>
-              <button 
+              <button
                 onClick={finishOnboarding}
                 className="w-full text-zinc-500 py-4 font-mono text-xs uppercase tracking-widest hover:text-zinc-300 transition-colors"
               >
